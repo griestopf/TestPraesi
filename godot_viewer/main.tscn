@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3 uid="uid://gynpel7qpjrr"]
+
+[ext_resource type="Script" path="res://turntable.gd" id="1_0wb5i"]
+[ext_resource type="Script" path="res://camera_rig.gd" id="3_p5mvp"]
+[ext_resource type="PackedScene" uid="uid://c7046xwmvyna6" path="res://model/model.glb" id="3_qtjtw"]
+[ext_resource type="PackedScene" uid="uid://cnx4n6unxh68o" path="res://hud.tscn" id="4_y7enc"]
+
+[sub_resource type="Environment" id="Environment_hg047"]
+background_mode = 1
+background_color = Color(1, 1, 1, 1)
+ambient_light_source = 1
+reflected_light_source = 1
+
+[node name="main" type="Node3D"]
+
+[node name="turntable" type="Node3D" parent="."]
+script = ExtResource("1_0wb5i")
+
+[node name="model_container" type="Node3D" parent="turntable"]
+
+[node name="model" parent="turntable/model_container" instance=ExtResource("3_qtjtw")]
+
+[node name="camera_rig" type="Node3D" parent="."]
+script = ExtResource("3_p5mvp")
+camera_distance = 3
+
+[node name="camera_arm" type="Node3D" parent="camera_rig"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0)
+
+[node name="camera" type="Camera3D" parent="camera_rig/camera_arm"]
+transform = Transform3D(1, 0, 0, 0, 1, -2.98023e-08, 0, 0, 1, 0, 0, 3)
+environment = SubResource("Environment_hg047")
+
+[node name="cam_light" type="DirectionalLight3D" parent="camera_rig/camera_arm/camera"]
+transform = Transform3D(0.289467, 0.496136, -0.818571, -0.327378, 0.854925, 0.402401, 0.899463, 0.1515, 0.409896, -3.83716, -1.98567, -2.48561)
+light_energy = 0.7
+shadow_bias = 2.0
+sky_mode = 1
+
+[node name="stage_light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.646883, 0.39527, -0.652153, 0, 0.855183, 0.518326, 0.762589, -0.335296, 0.553204, -3.83716, 5.60313, 1.16251)
+light_energy = 0.4
+shadow_bias = 2.0
+sky_mode = 1
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Hud" parent="CanvasLayer" instance=ExtResource("4_y7enc")]

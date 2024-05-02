@@ -1,0 +1,60 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Build Web App from Model.blend
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    container:
+      image: zehmueller/fr3d:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      # godot --export-pack does not need an export template. If needed, download here in the action and not in the docker container, as ~ is different when docker is run as github action
+      # godot target path (here index.pck) must be relative to godot project file (or absolute)
+      - name: Convert and Build
+        run: |
+          blender --background --python ./export_glb.py -- --input ./Model.blend --output ./godot_viewer/model/model.glb
+          godot ./godot_viewer/project.godot --export-pack Web export/web/index.pck --headless
+
+        # Workaround for SharedArrayBuffer support on GitHub Pages
+        # See: https://github.com/godotengine/godot-docs/issues/7084
+      - name: Convert and Build
+        run: |
+           wget https://github.com/gzuidhof/coi-serviceworker/raw/master/coi-serviceworker.js
+           mv coi-serviceworker.js ./godot_viewer/export/web
+           sed -i 's#\(		<script src="index.js"></script>\)#		<script src="coi-serviceworker.js"></script>\n\1#g' ./godot_viewer/export/web/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload everything under  ./godot_viewer/export/web
+          path: './godot_viewer/export/web'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
